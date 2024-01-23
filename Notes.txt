@@ -15,5 +15,5 @@ $ touch app.js constants.js index.js)
 
 npm i -D nodemon   (i as devDependency)
 
-chnage run srcipt to dev
+change run srcipt to dev
 
