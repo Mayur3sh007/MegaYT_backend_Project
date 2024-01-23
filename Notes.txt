@@ -1,4 +1,4 @@
-1] We npm init our main folder to get package.json
+]1] We npm init our main folder to get package.json
 2] add this all to our github using git.
 3] We create a public/temp folder and add .gitkeep so that git keeps track of our empty folders too.
 4] Create gitignore and add all the necessary data from .gitignore generator
@@ -17,3 +17,11 @@ npm i -D nodemon   (i as devDependency)
 
 change run srcipt to dev
 
+9]  Add required folders in src 
+$ mkdir controllers db middlewares models routes utils      (this is how pros do it)
+Add the changes to github (Now we are done with structuring our project)
+
+10] npm i -D prettier  --> Coz many people work on same project we i this devDependency to keep the formatting same throughout
+
+    Add .prettierrc file in root(not src) 
+    Add .prettierignore
