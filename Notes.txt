@@ -1,0 +1,19 @@
+1] We npm init our main folder to get package.json
+2] add this all to our github using git.
+3] We create a public/temp folder and add .gitkeep so that git keeps track of our empty folders too.
+4] Create gitignore and add all the necessary data from .gitignore generator
+5] create .env
+6] create src folder and add reqd files in it 
+(Admin@DESKTOP-UMDT2C6 MINGW64 /d/X_Web Develpoment/2_Chai Aur Backend/MegaYT/src (main)
+$ touch app.js constants.js index.js)
+
+7] set type:"moudle" in json
+
+8] get nodemon(it restarts server automatically everytime we save)
+
+(dev dependency:-means its only used during Develpomentand not for production & normal dependency stay even during production)
+
+npm i -D nodemon   (i as devDependency)
+
+chnage run srcipt to dev
+
