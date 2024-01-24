@@ -25,3 +25,19 @@ Add the changes to github (Now we are done with structuring our project)
 
     Add .prettierrc file in root(not src) 
     Add .prettierignore
+                            /******************/
+11] Going to mongoDb atlas web to create DB
+12] Add monogDB url to .env and add DB name in constants.js
+
+13] npm i dotenv mongoose express
+
+        /**** Remember DB is always in another continent. So always apply async await as it takes time to get response 
+        and try catch while handling DB coz its always difficult dealing with DB
+
+14] Hence now go on to index.js in src root to connect our DB.
+    Where we import index.js from db folder
+    now for dotenv to work we gotta go to package.json and chnage start script
+
+    *********************************
+
+15] 
