@@ -40,4 +40,11 @@ Add the changes to github (Now we are done with structuring our project)
 
     *********************************
 
-15] 
+15] Create app in app.js with express export it and enable our app on our port in src/index.js
+
+16] npm i cookie parser and cors. and go to app.js again
+    now set cors and add cors origin in .env for use(Just like proxy)
+
+17] Now in utils folder we create an asyncHandler file which will have a kindof syntax to handler async wait funcs in other files
+
+18] Now create ApiError.js in utils again
