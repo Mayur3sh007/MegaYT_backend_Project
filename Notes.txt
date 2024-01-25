@@ -1,4 +1,4 @@
-]1] We npm init our main folder to get package.json
+1] We npm init our main folder to get package.json
 2] add this all to our github using git.
 3] We create a public/temp folder and add .gitkeep so that git keeps track of our empty folders too.
 4] Create gitignore and add all the necessary data from .gitignore generator
@@ -47,4 +47,11 @@ Add the changes to github (Now we are done with structuring our project)
 
 17] Now in utils folder we create an asyncHandler file which will have a kindof syntax to handler async wait funcs in other files
 
-18] Now create ApiError.js in utils again
+18] Now create ApiError.js in utils again & ApiResponse
+
+    ******************************************
+
+19] create in models/ user.models.js and video.models.js--->npm i mongoose-aggregate-paginate-v2 (Now we can write quries)
+    npm i bcrypt    --> pwd hashing
+    npm i json-web-token  --> jwt is a bearer token anything that has it is safe to pass data to
+    create tokens in .env to use
