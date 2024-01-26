@@ -1,5 +1,5 @@
 const asyncHandler = (requestHandler) => {      //we pass a function named requestHandler in asyncHandler
-    (req,res,next)=>{
+    return (req,res,next)=>{                    //We gotta return this promise
         Promise
         .resolve(requestHandler(req,res,next))  //Run the func
         .catch((err)=> next(err))

@@ -25,7 +25,7 @@ Add the changes to github (Now we are done with structuring our project)
 
     Add .prettierrc file in root(not src) 
     Add .prettierignore
-                            /******************/
+                        *****************************
 11] Going to mongoDb atlas web to create DB
 12] Add monogDB url to .env and add DB name in constants.js
 
@@ -38,7 +38,7 @@ Add the changes to github (Now we are done with structuring our project)
     Where we import index.js from db folder
     now for dotenv to work we gotta go to package.json and chnage start script
 
-    *********************************
+                        *****************************
 
 15] Create app in app.js with express export it and enable our app on our port in src/index.js
 
@@ -49,14 +49,14 @@ Add the changes to github (Now we are done with structuring our project)
 
 18] Now create ApiError.js in utils again & ApiResponse
 
-    ******************************************
+                        *****************************
 
 19] create in models/ user.models.js and video.models.js--->npm i mongoose-aggregate-paginate-v2 (Now we can write quries)
     npm i bcrypt    --> pwd hashing
     npm i json-web-token  --> jwt is a bearer token anything that has it is safe to pass data to
     create tokens in .env to use
 
-                        *******************************        
+                        *****************************       
 
 20] We gonna use cloudinary & multer to upload imgs and vids
     npm install cloudinary 
@@ -69,5 +69,9 @@ Add the changes to github (Now we are done with structuring our project)
 
 22] Now we gonna create middlewares/multer.middlewares.js 
     Now we gonna pass this file whenever we will deal with uploading files. So as to keep its copy as a temp with us.
+
+                        *****************************
+
+23] Create controllers/user.controllers and routes/user.routes to use in App.js   and check with Postman
 
                         *****************************
