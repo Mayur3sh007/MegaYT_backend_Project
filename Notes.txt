@@ -55,3 +55,19 @@ Add the changes to github (Now we are done with structuring our project)
     npm i bcrypt    --> pwd hashing
     npm i json-web-token  --> jwt is a bearer token anything that has it is safe to pass data to
     create tokens in .env to use
+
+                        *******************************        
+
+20] We gonna use cloudinary & multer to upload imgs and vids
+    npm install cloudinary 
+    npm install multer
+
+    Basically we gonna take a file from user using multer and store it temporarily on our local storage(server) and then from there 
+    pass it to cloudinary server. This 2step setting is kept to keep option of Reupload for user.
+
+21] Create cloudinary.js in utils and add its urls in /.env
+
+22] Now we gonna create middlewares/multer.middlewares.js 
+    Now we gonna pass this file whenever we will deal with uploading files. So as to keep its copy as a temp with us.
+
+                        *****************************
