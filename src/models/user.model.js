@@ -55,7 +55,7 @@ userSchema.pre("save",async function(next) {    //This means that before we "sav
 
     if(!this.isModified("password")) return next();     //if our password hasnt been modified then dont do anything. (like we changing our avatar or something then there's no need to encrpty pwd)
 
-    this.password = bcrypt.hash(this.password,10)  //10 are hash rounds
+    this.password = await bcrypt.hash(this.password,10)  //10 are hash rounds
     next() //pass the flag to next func
 })  
 
