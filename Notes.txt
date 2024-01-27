@@ -87,4 +87,15 @@ Add the changes to github (Now we are done with structuring our project)
 3] Now go to user.routes.js to use multer coz we also have to handle files
 
                         *****************************
-4] Setup Postman and did debugging in user.controllers.js. Postman Setup-->25:32 Vid14 Chai Backend playlist
+
+4] Setup Postman and did debugging in user.controllers.js. Postman Setup-->25:32 Vid14 Chai Backend playlist    
+
+                        *****************************
+
+5] Now create loginUser func  in user.controllers.js
+
+6] Now for logoutUser we dont know if user is loggedIn or not .Neither can we ask user to fill up a form to logout(as he may logout other people)
+   So we gonna create auth.middlewares.js to verify whether a user exists or not by their Access token.
+   (BTW we have access to all cookies with req,res as we have used cookieparser middleware in app.js)
+
+   Now we will pass this middleware in user.routes.js 
