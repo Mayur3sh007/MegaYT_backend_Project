@@ -87,4 +87,4 @@ Add the changes to github (Now we are done with structuring our project)
 3] Now go to user.routes.js to use multer coz we also have to handle files
 
                         *****************************
- 
+4] Setup Postman and did debugging in user.controllers.js

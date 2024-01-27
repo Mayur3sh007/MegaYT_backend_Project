@@ -17,7 +17,7 @@ import { ApiResponse } from "../utils/ApiResponse.js"
 const registerUser = asyncHandler(async (req,res) =>{   //wrap in asyncy handler as we have handled try catch there
 
     const {fullName,email,username,password} = req.body         //The data recieved from forms,etc are in Body
-    console.log("email",email);
+    // console.log("email",email);
 
     // if(fullName === "")
     // {
@@ -25,12 +25,12 @@ const registerUser = asyncHandler(async (req,res) =>{   //wrap in asyncy handler
     // }    --->can do this too but below code is advanced
 
     if(
-        [fullName,email,username,password].some((field)=>field.trim() === "")       // The some method is an array method in JavaScript that tests whether at least one element in the array passes the provided function. trim is used to remove any leading or trailing whitespaces from the current field value.field.trim() === "" checks if the trimmed field value is an empty string.So, the condition inside some is checking if at least one of the fields has an empty
+        [fullName,email,username,password].some((field)=>String(field).trim() === "")       // The some method is an array method in JavaScript that tests whether at least one element in the array passes the provided function. trim is used to remove any leading or trailing whitespaces from the current field value.field.trim() === "" checks if the trimmed field value is an empty string.So, the condition inside some is checking if at least one of the fields has an empty
     ){
         throw new ApiError(400,"All fields are Required")
     }
 
-    const existedUser = User.findOne({  //1st occurance 
+    const existedUser = await User.findOne({  //1st occurance 
         $or: [ {username} , {email} ]        // retuns doc that matches the 1st occurance of the given username or email
     })
 
@@ -38,9 +38,17 @@ const registerUser = asyncHandler(async (req,res) =>{   //wrap in asyncy handler
         throw new ApiError(409,"User with same User name or email exists")
     }
 
+    // console.log(req.files)
+
     //Checking images   --> as we had put multer(middleware) in user.routes then passed the control here we can use .files now instead of .body provided by Express which only gets data
     const avatarLocalPath = req.files?.avatar[0]?.path;
-    const coverImagePath = req.files?.coverImage[0]?.path;
+    // const coverImageLocalPath = req.files?.coverImage[0]?.path;
+
+    let coverImageLocalPath;
+    if(req.files && Array.isArray(req.files.coverImage) && req.files.coverImage.length > 0 )
+    {
+        coverImageLocalPath = req.files.coverImage[0].path  //if it exists then from its 0th elem give me its path
+    }
 
     if(!avatarLocalPath)
     {
@@ -48,7 +56,7 @@ const registerUser = asyncHandler(async (req,res) =>{   //wrap in asyncy handler
     }
 
     const avatar = await uploadOnCloudinary(avatarLocalPath)   //put await even though we have asyncHandler coz we intentionnaly wanna make it wait here coz we knwo uploading takes time
-    const coverImage = await uploadOnCloudinary(coverImagePath)
+    const coverImage = await uploadOnCloudinary(coverImageLocalPath)
 
     if(!avatar)
     {
@@ -61,7 +69,7 @@ const registerUser = asyncHandler(async (req,res) =>{   //wrap in asyncy handler
         coverImage: coverImage?.url || "",  //we havent considered it as compulsory so we gotta check if it exists first then upload it
         email,
         password,
-        username: username.toLowerCase()
+        username: String(username).toLowerCase()
     })  //except these mongoDB automatically adds ID to each "user"
 
     const createdUser = await User.findById(user._id).select(
