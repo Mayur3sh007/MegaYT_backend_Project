@@ -114,4 +114,9 @@ Add the changes to github (Now we are done with structuring our project)
 
     //*** Added my own method named isUseralreadyLogged to see whether user has Access tokens if Yes then we get the user data ***\\
 
+
+                TODO: create an uitlity to DELETE OLD IMAGE while updating avatar or cover image
+
                         *****************************
+
+11] 
