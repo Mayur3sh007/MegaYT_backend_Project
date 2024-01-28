@@ -99,3 +99,7 @@ Add the changes to github (Now we are done with structuring our project)
    (BTW we have access to all cookies with req,res as we have used cookieparser middleware in app.js)
 
    Now we will pass this middleware in user.routes.js 
+
+7] Learning Access and Refresh Tokens. and testing our register,login and logout methods on Postman
+
+8] create method refreshAccessToken in user.controllers and add it to routes

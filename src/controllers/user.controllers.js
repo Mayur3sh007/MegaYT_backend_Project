@@ -3,17 +3,25 @@ import {ApiError} from "../utils/ApiError.js"
 import {User} from "../models/user.model.js"
 import {uploadOnCloudinary} from  "../utils/cloudinary.js"
 import { ApiResponse } from "../utils/ApiResponse.js"
-
+import jwt from "jsonwebtoken"
                                     
 const generateAccessandRefreshTokens = async(userId)=>{   //not using asyncHAndler here as this is a function we gonna use inside loginUser only so no need to handle api errors
     try {
         const user = await User.findById(userId)
+
+        if(!user)
+        {
+            throw new ApiError(404,"User not found");
+        }
+        console.log("User",user)
+
         const accessToken = user.generateAccessToken()
         const refreshToken = user.generateRefreshToken()
-
+        // console.log("Tokens generated successfully:", { accessToken, refreshToken });
+        
         user.refreshToken = refreshToken                //user has become an obj containing all properties we gave user in models. So we pass our generated refreshtoken to DB as a part of the data as seen in model
         await user.save({ validateBeforeSave: false })  //coz we havent put in password yet and we made password:required in model. So not to mess it up we mark validate:false
-
+        
         return {accessToken, refreshToken}              //return to our loginUser method
 
     } catch (error) {
@@ -118,7 +126,7 @@ const loginUser = asyncHandler(async(req,res)=>{
 
     const {email,username,password} = req.body
     
-    if(!(username || email))  
+    if(!username && !email)  
     {
         throw new ApiError(400,"Username & Email is required")
     }
@@ -139,7 +147,7 @@ const loginUser = asyncHandler(async(req,res)=>{
         throw new ApiError(401,"Invalid User Credentials")
     }
 
-    const {accessToken,refreshToken} = await generateAccessandRefreshTokens(user._id);  //The method written at start of the file
+    const {accessToken,refreshToken} = await generateAccessandRefreshTokens(user._id)  //The method written at start of the file
 
     const loggedInUser = await User.findById(user._id).
     select("-password -refreshToken")
@@ -193,10 +201,59 @@ const logoutUser = asyncHandler(async(req,res)=>{   //since we didnt have access
     .json(new ApiResponse(200,{},"User logged OUT"))
 })
 
+const refreshAccessToken = asyncHandler(async(req,res)=>{
 
+    const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken  //This is the one user sending us
+
+    if(!incomingRefreshToken)    //*********** */
+    {
+        throw new ApiError(401,"Unauthorized request")
+    }
+
+    try {
+        const decodedToken = jwt.verify(
+            incomingRefreshToken,               //This token we get is encoded
+            process.env.REFRESH_TOKEN_SECRET    //So we decode it with our secret
+        )
+    
+        const user = User.findById(decodedToken?._id)   //And get user using it
+    
+        if(!user)    //*********** */
+        {
+            throw new ApiError(401,"Invalid Refresh Token")
+        }
+    
+        if(incomingRefreshToken !== user?.refreshToken){
+            throw new ApiError(401,"Refresh token is expried or Used")
+        }
+    
+        const options = {
+            httpOnly:true,
+            secure:true
+        }
+    
+        const {accessToken,newRefreshToken} = await generateAccessandRefreshTokens(user._id)
+    
+        return res
+        .status(200)
+        .cookie("Access Token",accessToken)
+        .cookie("Refresh Token",newRefreshToken)
+        .json(
+            new ApiResponse(
+                200,
+                {accessToken,refreshToken : newRefreshToken},
+                "Access Token Refreshed"
+            )
+        )
+    } catch (error) {
+        throw new ApiError(401,error?.message || "Invalid Refresh Token")
+    }
+
+})
 
 export {
     registerUser,
     loginUser,
-    logoutUser
+    logoutUser,
+    refreshAccessToken
 }
