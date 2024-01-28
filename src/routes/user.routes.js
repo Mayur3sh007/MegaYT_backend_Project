@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { loginUser, logoutUser, refreshAccessToken, registerUser } from "../controllers/user.controllers.js";
+import { isUseralreadyLogged, loginUser, logoutUser, refreshAccessToken, registerUser } from "../controllers/user.controllers.js";
 import {upload} from "../middlewares/multer.middlewares.js"
 import { verifyJWT } from "../middlewares/auth.middlerwares.js";
 
@@ -19,10 +19,13 @@ router.route("/register").post(
     ]),    
     registerUser)   //after coming here from app.js--> here /register will be appended in url and it will call registerUser Method 
 
+router.route("/verify").get(isUseralreadyLogged)
 router.route("/login").post(loginUser)
 
 //secured Routes
 router.route("/logout").post(verifyJWT,logoutUser)  //as we pass verifyJWT func before logoutUser. For this prupose we write next() at end of middleware so complier knows that it has run next function after middleware
 router.route("/refresh-token").post(refreshAccessToken)
+
+
 
 export default router; 

@@ -13,7 +13,7 @@ const generateAccessandRefreshTokens = async(userId)=>{   //not using asyncHAndl
         {
             throw new ApiError(404,"User not found");
         }
-        console.log("User",user)
+        // console.log("User",user)
 
         const accessToken = user.generateAccessToken()
         const refreshToken = user.generateRefreshToken()
@@ -114,6 +114,42 @@ const registerUser = asyncHandler(async (req,res) =>{   //wrap in asyncy handler
 
 } )
 
+const isUseralreadyLogged = asyncHandler(async (req,res) =>{
+
+    try
+    {
+        // we have access to all cookies with req,res as we have used cookieparser middleware in app.js
+        const token = req.cookies?.accessToken || req.header("Authorization") ?.replace("Bearer ","")    //coz we have cookies stored as-->Authorization:Bearer <token_name>.Since we just want token value we remove "Bearer "
+    
+        if(!token){
+            throw new ApiError(401,"No Access Token found")
+        }
+    
+        const decodedToken = jwt.verify(token,process.env.ACCESS_TOKEN_SECRET)
+    
+        const user = await User.findById(decodedToken._id).
+        select("-password -refreshToken")
+    
+        if(!user){
+            throw new ApiError(404,"Invalid Access token ")
+        }
+    
+        return res
+        .status(200)
+        .json(
+        new ApiResponse(
+            200,
+            req.user,
+            "User logged in Successfully through Access token"
+        )
+    )    
+        
+    } catch (error) {
+        throw new ApiError(404,"Access Token not found")
+    }
+
+})
+
 const loginUser = asyncHandler(async(req,res)=>{
 
                                                 /* Steps for Login */
@@ -203,7 +239,7 @@ const logoutUser = asyncHandler(async(req,res)=>{   //since we didnt have access
 
 const refreshAccessToken = asyncHandler(async(req,res)=>{
 
-    const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken  //This is the one user sending us
+    const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken  //This is the one user sending us (we also take from body coz apps dont have cookies)
 
     if(!incomingRefreshToken)   
     {
@@ -223,7 +259,8 @@ const refreshAccessToken = asyncHandler(async(req,res)=>{
             throw new ApiError(401,"Invalid Refresh Token")
         }
     
-        if(incomingRefreshToken !== user?.refreshToken){
+        if(incomingRefreshToken !== user?.refreshToken)
+        {
             throw new ApiError(401,"Refresh token is expried or Used")
         }
     
@@ -236,8 +273,8 @@ const refreshAccessToken = asyncHandler(async(req,res)=>{
     
         return res
         .status(200)
-        .cookie("Access Token",accessToken)
-        .cookie("Refresh Token",newRefreshToken)
+        .cookie("Access Token", accessToken, options)
+        .cookie("Refresh Token", newRefreshToken, options)
         .json(
             new ApiResponse(
                 200,
@@ -288,6 +325,7 @@ const getCurrentUser = asyncHandler(async(req,res)=>{
 
 })
 
+//Updation Methods
 const updateAccountDetails = asyncHandler(async(req,res)=>{
     //remember always keep updating user details(text) and files methods different it prevents saturation on server
     const {fullName, email} = req.body
@@ -313,7 +351,7 @@ const updateAccountDetails = asyncHandler(async(req,res)=>{
     .json(new ApiResponse(200, user, "Account details updated successfully"))
 })
 
-const updateUserAvatar = asyncHandler(async()=>{
+const updateUserAvatar = asyncHandler(async(req,res)=>{
     //now we got access to req.files coz we have imported multer middleware in routes B4 executing this func
     const avatarLocalPath = req.file?.path
 
@@ -347,7 +385,7 @@ const updateUserAvatar = asyncHandler(async()=>{
 
 })
 
-const updateUserCoverImage = asyncHandler(async()=>{
+const updateUserCoverImage = asyncHandler(async(req,res)=>{
     //now we got access to req.files coz we have imported multer middleware in routes B4 executing this func
     const coverImageLocalPath = req.file?.path
 
@@ -381,7 +419,8 @@ const updateUserCoverImage = asyncHandler(async()=>{
     )
 })
 
-export {
+export 
+{
     registerUser,
     loginUser,
     logoutUser,
@@ -390,5 +429,6 @@ export {
     getCurrentUser,
     updateAccountDetails,
     updateUserAvatar,
-    updateUserCoverImage
+    updateUserCoverImage,
+    isUseralreadyLogged         //* Own Method  */
 }

@@ -76,7 +76,7 @@ Add the changes to github (Now we are done with structuring our project)
                         *****************************
 
                             
-                                            \*** ACTUAL PROJECT BEGINS ***/
+                                        \*** ACTUAL PROJECT BEGINS ***/
 
 1] Create controllers/user.controllers and routes/user.routes to use in App.js and check with Postman
 
@@ -107,6 +107,11 @@ Add the changes to github (Now we are done with structuring our project)
 8] create method refreshAccessToken in user.controllers and add it to routes
 
                         *****************************
+
 9] create a model named subscriptions
 
 10] create new methods in user.controllers for updation
+
+    //*** Added my own method named isUseralreadyLogged to see whether user has Access tokens if Yes then we get the user data ***\\
+
+                        *****************************
