@@ -251,9 +251,144 @@ const refreshAccessToken = asyncHandler(async(req,res)=>{
 
 })
 
+const changeCurrentPassword = asyncHandler(async(req,res)=>{
+
+    const {oldPassword,newPassword} = req.body
+
+    const user = await User.findById(req.user?._id)  //so if the user is changing password that means he's logged in i.e auth.controller has been run hence we can use req.user as our user is saved due to that middleware
+    const isPasswordCorrect = await user.isPasswordCorrect(oldPassword)
+
+    if(!isPasswordCorrect)
+    {
+        throw new ApiError(400,"Invalid old Password")
+    }
+
+    user.password =  newPassword
+    await user.save({validateBeforeSave:false})
+
+    return res
+    .status(200)
+    .json(new ApiResponse(200,{},"Password changed successfully"))
+})
+
+const getCurrentUser = asyncHandler(async(req,res)=>{
+    
+    //My attempt to write this func 
+    // const user = await User.findById(req.user?.id)
+    // if(!user)
+    // {
+    //     throw new ApiError(404,"User not logged in")
+    // }
+    //return .status(200).json(200,user,"Current user fetched successfully")
+
+    //So if user is logged in then our auth middleware is called so we have acess to req.user
+    return res
+    .status(200)
+    .json(200,req.user,"Current user fetched successfully")
+
+})
+
+const updateAccountDetails = asyncHandler(async(req,res)=>{
+    //remember always keep updating user details(text) and files methods different it prevents saturation on server
+    const {fullName, email} = req.body
+
+    if (!fullName || !email) {
+        throw new ApiError(400, "All fields are required")
+    }
+
+    const user = await User.findByIdAndUpdate(
+        req.user?._id,
+        {
+            $set: {
+                fullName,       //this is fine
+                email: email    //this is also fine
+            }
+        },
+        {new: true} //so we return newly updated values
+        
+    ).select("-password")
+
+    return res
+    .status(200)
+    .json(new ApiResponse(200, user, "Account details updated successfully"))
+})
+
+const updateUserAvatar = asyncHandler(async()=>{
+    //now we got access to req.files coz we have imported multer middleware in routes B4 executing this func
+    const avatarLocalPath = req.file?.path
+
+    if(!avatarLocalPath)
+    {
+        throw new ApiError(400,"Avatar file missing")
+    }
+
+    const avatar = await uploadOnCloudinary(avatarLocalPath)
+
+    if(!avatar.url)
+    {
+        throw new ApiError(400,"Error while uploading avatarLocalPath on cloudinary")
+    }
+
+    const user = await User.findByIdAndUpdate(
+        req.user?._id,
+        {
+            $set:{
+                avatar:avatar.url
+            }
+        },
+        {new:true}
+    ).select("-password")
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(200,user,"Avatar updated Successfully")
+    )
+
+})
+
+const updateUserCoverImage = asyncHandler(async()=>{
+    //now we got access to req.files coz we have imported multer middleware in routes B4 executing this func
+    const coverImageLocalPath = req.file?.path
+
+    if(!coverImageLocalPath)
+    {
+        throw new ApiError(400,"Cover Image file is missing in local")
+    }
+
+    const coverImage = await uploadOnCloudinary(coverImageLocalPath)
+
+    if(!coverImage.url)
+    {
+        throw new ApiError(400,"Error while uploading coverImageLocalPath on cloudinary")
+    }
+
+    const user = await User.findByIdAndUpdate(
+        req.user?._id,
+        {
+            $set:{
+                coverImage:coverImage.url
+            }
+        },
+        {new:true}
+    ).select("-password")
+
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(200,user,"Cover Image updated Successfully")
+    )
+})
+
 export {
     registerUser,
     loginUser,
     logoutUser,
-    refreshAccessToken
+    refreshAccessToken,
+    changeCurrentPassword,
+    getCurrentUser,
+    updateAccountDetails,
+    updateUserAvatar,
+    updateUserCoverImage
 }

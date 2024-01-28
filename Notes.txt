@@ -108,3 +108,5 @@ Add the changes to github (Now we are done with structuring our project)
 
                         *****************************
 9] create a model named subscriptions
+
+10] create new methods in user.controllers for updation
