@@ -119,4 +119,4 @@ Add the changes to github (Now we are done with structuring our project)
 
                         *****************************
 
-11] 
+11] Now we gonna create getUserChannelProfile and similar funcs for Pipelining aggregation in user.controllers

@@ -419,6 +419,81 @@ const updateUserCoverImage = asyncHandler(async(req,res)=>{
     )
 })
 
+//Aggregation Pipeline
+const getUserChannelProfile = asyncHandler(async(req,res)=>{
+    const {username} = req.params   //we get username from url , hence req.params
+
+    if(!username?.trim())   //trim to check for empty string
+    {
+        throw new ApiError(400,"Username is Missing");
+    }
+
+    const channel = await User.aggregate([  //aggregate returns an array
+        {
+            $match:{
+                username: username?.toLowerCase()   //checks whether the username field in our DB and the one we recieved matches
+            }
+        },
+        {
+            $lookup:{                     //We find how many times a channel is registered in DB to count its subscribers
+                from:"subscriptions",    // we gave model name as "Subscription" in models but in DB it becomes lowercase and plural
+                localField:"_id",
+                foreignField:"channel",
+                as:"subscibers"
+            }
+        },
+        {
+            $lookup:{                   //We find a subscriber to get what channels he has subscribed to
+                from:"subscriptions",   
+                localField:"_id",
+                foreignField:"subsciber",
+                as:"subscibedTo"
+            }
+        },
+        {
+            $addFields:{
+                subscriberCount:{
+                    $size: "$subscribers"
+                },
+                channelSubscribedToCount:{
+                    $size:"$subscribedTo"
+                },
+                isSubscribed:{
+                    $cond: {
+                        if:{$in:[req.user?._id,"$subscribers.subsciber"]}, //Basically see if our user exists as a "subscriber"(our given name in model) in a field named "subscribers" which we just got above.
+                        then:true,
+                        else:false
+                    }
+                }
+            }
+        },
+        {
+            $project:{          //Allows us to chose what to show and what not to
+                fullName:1,     //1 means its flag is on i.e it will be projected
+                username:1,
+                email:1,
+                subscriberCount:1,
+                channelSubscribedToCount:1,
+                isSubscribed:1,
+                avatar:1,
+                coverImage:1,
+            }
+        }
+    ])
+
+    console.log(channel)
+
+    if(!channel?.length){
+        throw new ApiError(404,"Channel doesnt found");
+    }
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(200,channel[0],"User channel fetched Successfully")
+    )
+})
+
 export 
 {
     registerUser,
@@ -430,5 +505,6 @@ export
     updateAccountDetails,
     updateUserAvatar,
     updateUserCoverImage,
-    isUseralreadyLogged         //* Own Method  */
+    isUseralreadyLogged,         //* Own Method  */
+    getUserChannelProfile
 }
