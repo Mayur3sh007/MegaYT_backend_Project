@@ -494,6 +494,60 @@ const getUserChannelProfile = asyncHandler(async(req,res)=>{
     )
 })
 
+const getWatchHistory = asyncHandler(async(req,res)=>{
+    const user = await User.aggregate([
+        {
+            $match:{
+                _id:new mongoose.Types.ObjectId(req.user._id)   //bcoz as we know "req.user._id" gives us a string of ID and normally its converted to mongoDB object ID behind the scenes by mongoose but as we are in aggregate method , It doesnt work that way so we have to manually do it 
+            }
+        },
+        {
+            $lookup:{                   //now we have fetched a big doc
+                from:"videos",
+                localField:"watchHistory",
+                foreignField:"_id",
+                as:"watchHistory",
+                pipeline:[
+                    {
+                        $lookup:{
+                            user:"users",
+                            localField:"owner",
+                            foreignField:"_id",
+                            as:"owner",
+                            pipeline:[
+                                {
+                                    $project:{
+                                        fullName:1,
+                                        username:1,
+                                        avatar:1
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        $addFields:{
+                            owner:{
+                                $first:"$owner"
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+    ])
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(
+            200,
+            user[0].watchHistory,
+            "Watch History Fetched Successfully"
+            )
+    )
+})
+
 export 
 {
     registerUser,
@@ -506,5 +560,6 @@ export
     updateUserAvatar,
     updateUserCoverImage,
     isUseralreadyLogged,         //* Own Method  */
-    getUserChannelProfile
+    getUserChannelProfile,
+    getWatchHistory
 }
