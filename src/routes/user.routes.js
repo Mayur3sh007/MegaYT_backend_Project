@@ -1,5 +1,18 @@
 import { Router } from "express";
-import { isUseralreadyLogged, loginUser, logoutUser, refreshAccessToken, registerUser } from "../controllers/user.controllers.js";
+import {
+    changeCurrentPassword,
+    getCurrentUser,
+    getUserChannelProfile,
+    getWatchHistory,
+    isUseralreadyLogged,
+    loginUser,
+    logoutUser,
+    refreshAccessToken,
+    registerUser,
+    updateAccountDetails,
+    updateUserAvatar,
+    updateUserCoverImage
+} from "../controllers/user.controllers.js";
 import {upload} from "../middlewares/multer.middlewares.js"
 import { verifyJWT } from "../middlewares/auth.middlerwares.js";
 
@@ -25,7 +38,15 @@ router.route("/login").post(loginUser)
 //secured Routes
 router.route("/logout").post(verifyJWT,logoutUser)  //as we pass verifyJWT func before logoutUser. For this prupose we write next() at end of middleware so complier knows that it has run next function after middleware
 router.route("/refresh-token").post(refreshAccessToken)
+router.route("/change-password").post(verifyJWT,changeCurrentPassword)
+router.route("/current-user").get(verifyJWT,getCurrentUser)
+router.route("/update-account").patch(verifyJWT,updateAccountDetails)   //patch means change only a part of resource
 
+router.route("/avatar").patch(verifyJWT,upload.single("avatar"),updateUserAvatar)    //basically our user must be firstly loggedin and then we want upload method from multer but only for a single file named "avatar"--> this is the name we gave now  but still for safety keep it same as the ones we are using in Db and code. Then call our main method
+router.route("/cover-image").patch(verifyJWT,upload.single("coverImage"),updateUserCoverImage)
 
+//while taking something from params we MUST NOT change the naming convention. Keep it the same as the one we gave in the method in controllers
+router.route("/channel/:username").get(verifyJWT,getUserChannelProfile) //since we took "username" in controllers we must keep it same here too
+router.route("/history").get(verifyJWT,getWatchHistory)
 
 export default router; 
