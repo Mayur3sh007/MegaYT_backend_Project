@@ -1,9 +1,10 @@
 import {asyncHandler} from "../utils/asyncHandler.js"
 import {ApiError} from "../utils/ApiError.js"
 import {User} from "../models/user.model.js"
-import {uploadOnCloudinary} from  "../utils/cloudinary.js"
+import {uploadOnCloudinary,deleteOnCloudinary} from  "../utils/cloudinary.js"
 import { ApiResponse } from "../utils/ApiResponse.js"
 import jwt from "jsonwebtoken"
+import mongoose from "mongoose"
                                     
 const generateAccessandRefreshTokens = async(userId)=>{   //not using asyncHAndler here as this is a function we gonna use inside loginUser only so no need to handle api errors
     try {
@@ -112,7 +113,7 @@ const registerUser = asyncHandler(async (req,res) =>{   //wrap in asyncy handler
         new ApiResponse(200,createdUser,"User Registered Successfully")
     )
 
-} )
+})
 
 const isUseralreadyLogged = asyncHandler(async (req,res) =>{
 
@@ -215,8 +216,8 @@ const logoutUser = asyncHandler(async(req,res)=>{   //since we didnt have access
     await User.findByIdAndUpdate(
         req.user._id,   //Find by
         {
-            $set:{      //mongoDB operator which gives us an object where we can tell what to update
-                refreshToken: undefined
+            $unset:{      //mongoDB operator which gives us an object where we can tell what to remove
+                refreshToken: 1 //this removes the field from document
             }
         },
         {
@@ -251,17 +252,17 @@ const refreshAccessToken = asyncHandler(async(req,res)=>{
             incomingRefreshToken,               //This token we get is encoded
             process.env.REFRESH_TOKEN_SECRET    //So we decode it with our secret
         )
-    
-        const user = User.findById(decodedToken?._id)   //And get user using it
+        
+        const user = await User.findById(decodedToken?._id)   //And get user from mongoDB using it
     
         if(!user)    //*********** */
         {
             throw new ApiError(401,"Invalid Refresh Token")
         }
-    
+
         if(incomingRefreshToken !== user?.refreshToken)
         {
-            throw new ApiError(401,"Refresh token is expried or Used")
+            throw new ApiError(401,"Refresh token is expried or being Used")
         }
     
         const options = {
@@ -316,12 +317,14 @@ const getCurrentUser = asyncHandler(async(req,res)=>{
     // {
     //     throw new ApiError(404,"User not logged in")
     // }
-    //return .status(200).json(200,user,"Current user fetched successfully")
+    //return res
+    // .status(200)
+    // .json(200,user,"Current user fetched successfully")
 
     //So if user is logged in then our auth middleware is called so we have acess to req.user
     return res
     .status(200)
-    .json(200,req.user,"Current user fetched successfully")
+    .json(new ApiResponse(200,req.user,"Current user fetched successfully"))
 
 })
 
@@ -337,7 +340,7 @@ const updateAccountDetails = asyncHandler(async(req,res)=>{
     const user = await User.findByIdAndUpdate(
         req.user?._id,
         {
-            $set: {
+            $set: {             //its a method to set the input
                 fullName,       //this is fine
                 email: email    //this is also fine
             }
@@ -352,6 +355,29 @@ const updateAccountDetails = asyncHandler(async(req,res)=>{
 })
 
 const updateUserAvatar = asyncHandler(async(req,res)=>{
+
+    //Since while registering we created a user in mongo DB and put avatar: avatar.url i.e avatar in DB now contains our Og cloudinary url of avatar 
+    //hence we gonna delete it first
+
+    //Dont do this coz it will return us an object
+    // const oldCloudinarycoverImageURL = await User.findById(req.user?._id).select('avatar');   //get old cloudinary url from DB
+
+    // if(!oldCloudinarycoverImageURL)
+    // {
+    //     throw new ApiError(404,"Old avatar url for cloudinary not found");
+    // }
+
+    //This will specifically return just url
+    const oldCloudinarycoverImageURL = req.user.avatar;
+    console.log(oldCloudinarycoverImageURL)
+
+    // Delete old avatar from Cloudinary
+    const deletionResult = await deleteOnCloudinary(oldCloudinarycoverImageURL);
+
+    if (deletionResult == false) {
+        throw new ApiError(500, "Error deleting old avatar from Cloudinary");
+    }
+
     //now we got access to req.files coz we have imported multer middleware in routes B4 executing this func
     const avatarLocalPath = req.file?.path
 
@@ -360,7 +386,7 @@ const updateUserAvatar = asyncHandler(async(req,res)=>{
         throw new ApiError(400,"Avatar file missing")
     }
 
-    const avatar = await uploadOnCloudinary(avatarLocalPath)
+    const avatar = await uploadOnCloudinary(avatarLocalPath)    
 
     if(!avatar.url)
     {
@@ -386,6 +412,18 @@ const updateUserAvatar = asyncHandler(async(req,res)=>{
 })
 
 const updateUserCoverImage = asyncHandler(async(req,res)=>{
+
+    //This will specifically return just url
+    const oldCloudinarycoverImageURL = req.user.coverImage;
+    console.log(oldCloudinarycoverImageURL)
+
+    // Delete old avatar from Cloudinary
+    const deletionResult = await deleteOnCloudinary(oldCloudinarycoverImageURL);
+
+    if (deletionResult == false) {
+        throw new ApiError(500, "Error deleting old avatar from Cloudinary");
+    }
+
     //now we got access to req.files coz we have imported multer middleware in routes B4 executing this func
     const coverImageLocalPath = req.file?.path
 
@@ -421,6 +459,7 @@ const updateUserCoverImage = asyncHandler(async(req,res)=>{
 
 //Aggregation Pipeline
 const getUserChannelProfile = asyncHandler(async(req,res)=>{
+
     const {username} = req.params   //we get username from url , hence req.params
 
     if(!username?.trim())   //trim to check for empty string
@@ -428,18 +467,22 @@ const getUserChannelProfile = asyncHandler(async(req,res)=>{
         throw new ApiError(400,"Username is Missing");
     }
 
+    //to check what we getting
+    // const user = await User.findOne({username});
+    // console.log(user);
+
     const channel = await User.aggregate([  //aggregate returns an array
         {
             $match:{
-                username: username?.toLowerCase()   //checks whether the username field in our DB and the one we recieved matches
+                username: username?.toLowerCase()   //checks whether the username field in our DB and the one we recieved turned into lowercase matches
             }
         },
         {
             $lookup:{                     //We find how many times a channel is registered in DB to count its subscribers
                 from:"subscriptions",    // we gave model name as "Subscription" in models but in DB it becomes lowercase and plural
-                localField:"_id",
-                foreignField:"channel",
-                as:"subscibers"
+                localField:"_id",       //this from here
+                foreignField:"channel", //we get from subscriptions
+                as:"subscribers"
             }
         },
         {
@@ -447,20 +490,20 @@ const getUserChannelProfile = asyncHandler(async(req,res)=>{
                 from:"subscriptions",   
                 localField:"_id",
                 foreignField:"subsciber",
-                as:"subscibedTo"
+                as:"subscribedTo"
             }
         },
         {
             $addFields:{
                 subscriberCount:{
-                    $size: "$subscribers"
+                    $size: "$subscribers"   //new generated field
                 },
                 channelSubscribedToCount:{
                     $size:"$subscribedTo"
                 },
                 isSubscribed:{
                     $cond: {
-                        if:{$in:[req.user?._id,"$subscribers.subsciber"]}, //Basically see if our user exists as a "subscriber"(our given name in model) in a field named "subscribers" which we just got above.
+                        if:{$in:[req.user?._id,"$subscribers.subscriber"]}, //Basically see if our user exists as a "subscriber"(our given name in model) in our new generated field named "subscribers" which we just got above.
                         then:true,
                         else:false
                     }
@@ -484,7 +527,7 @@ const getUserChannelProfile = asyncHandler(async(req,res)=>{
     console.log(channel)
 
     if(!channel?.length){
-        throw new ApiError(404,"Channel doesnt found");
+        throw new ApiError(404,"Channel Not found");
     }
 
     return res
@@ -495,6 +538,7 @@ const getUserChannelProfile = asyncHandler(async(req,res)=>{
 })
 
 const getWatchHistory = asyncHandler(async(req,res)=>{
+
     const user = await User.aggregate([
         {
             $match:{
@@ -504,16 +548,16 @@ const getWatchHistory = asyncHandler(async(req,res)=>{
         {
             $lookup:{                   //now we have fetched a big doc
                 from:"videos",
-                localField:"watchHistory",
-                foreignField:"_id",
-                as:"watchHistory",
+                localField:"watchHistory",  //from users
+                foreignField:"_id",         //from videos 
+                as:"watchHistory",          //now contains ids of videos
                 pipeline:[
                     {
                         $lookup:{
-                            user:"users",
-                            localField:"owner",
-                            foreignField:"_id",
-                            as:"owner",
+                            from:"users",
+                            localField:"owner",      //from videos coz we are inside videos now
+                            foreignField:"_id",     //from users
+                            as:"owner",             //now this contains all owners
                             pipeline:[
                                 {
                                     $project:{

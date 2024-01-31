@@ -42,8 +42,8 @@ router.route("/change-password").post(verifyJWT,changeCurrentPassword)
 router.route("/current-user").get(verifyJWT,getCurrentUser)
 router.route("/update-account").patch(verifyJWT,updateAccountDetails)   //patch means change only a part of resource
 
-router.route("/avatar").patch(verifyJWT,upload.single("avatar"),updateUserAvatar)    //basically our user must be firstly loggedin and then we want upload method from multer but only for a single file named "avatar"--> this is the name we gave now  but still for safety keep it same as the ones we are using in Db and code. Then call our main method
-router.route("/cover-image").patch(verifyJWT,upload.single("coverImage"),updateUserCoverImage)
+router.route("/changeAvatar").patch(verifyJWT,upload.single("newAvatar"),updateUserAvatar)    //basically our user must be firstly loggedin and then we want upload method from multer but only for a single file named "avatar"--> this is the name we gave now  but still for safety keep it same as the ones we are using in Db and code. Then call our main method
+router.route("/change-Cover-image").patch(verifyJWT,upload.single("newCoverImage"),updateUserCoverImage)
 
 //while taking something from params we MUST NOT change the naming convention. Keep it the same as the one we gave in the method in controllers
 router.route("/channel/:username").get(verifyJWT,getUserChannelProfile) //since we took "username" in controllers we must keep it same here too
