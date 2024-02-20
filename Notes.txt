@@ -39,13 +39,12 @@ Add the changes to github (Now we are done with structuring our project)
 
 14] Hence now go on to index.js in src to connect our DB.
     Where we import index.js from db folder
-    now for dotenv to work we gotta go to package.json and change start script  (Which helps to get access to env variables quickly for all other files)
-
+    
                         *****************************
 
 15] Create app in app.js with express export it and enable our app on our port in src/index.js
 
-16] npm i cookie parser and cors. and go to app.js again
+16] npm i cookie parser and cors and go to app.js again
     now set cors and add cors origin in .env for use(Just like proxy)
 
 17] Now in utils folder we create an asyncHandler file which will have a kind of syntax to handle async wait funcs in other files
@@ -56,7 +55,7 @@ Add the changes to github (Now we are done with structuring our project)
 
 19] create in models/ user.models.js and video.models.js--->npm i mongoose-aggregate-paginate-v2 (Now we can write quries)
     npm i bcrypt    --> pwd hashing
-    npm i json-web-token  --> jwt is a bearer token anything that has it is safe to pass data to
+    npm i jsonwebtoken  --> jwt is a bearer token anything that has it is safe to pass data to
     create tokens in .env to use
 
                         *****************************       
